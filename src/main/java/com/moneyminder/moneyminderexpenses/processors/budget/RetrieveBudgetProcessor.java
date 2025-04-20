@@ -30,8 +30,8 @@ public class RetrieveBudgetProcessor {
         return this.budgetMapper.toModel(this.budgetRepository.findById(budgetId).orElseThrow());
     }
 
-    public String retrieveBudgetNameById(final String budgetId) {
-        final BudgetEntity budgetEntity = this.budgetRepository.findById(budgetId).orElseThrow();
+    public String retrieveBudgetNameByGroupId(final String budgetGroupId) {
+        final BudgetEntity budgetEntity = this.budgetRepository.findAllByGroupIdIn(List.of(budgetGroupId)).stream().findFirst().orElseThrow();
         return budgetEntity.getName();
     }
 
@@ -44,6 +44,7 @@ public class RetrieveBudgetProcessor {
                 .and(BudgetSpecification.filterByEndDateAfterOrEqualThan(params.getEndDateAfterOrEqualThan()))
                 .and(BudgetSpecification.searchByName(params.getName()))
                 .and(BudgetSpecification.searchByComment(params.getComment()))
-                .and(BudgetSpecification.filterByFavorite(params.getFavorite()));
+                .and(BudgetSpecification.filterByFavorite(params.getFavorite()))
+                .and(BudgetSpecification.filterByGroupIdIn(params.getGroupsIn()));
     }
 }

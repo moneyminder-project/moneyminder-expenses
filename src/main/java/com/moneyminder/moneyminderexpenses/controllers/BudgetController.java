@@ -39,8 +39,8 @@ public class BudgetController {
     }
 
     @GetMapping("/budget-name/{id}")
-    public ResponseEntity<String> getBudgetNameById(@PathVariable String id) {
-        return ResponseEntity.ok(this.retrieveBudgetProcessor.retrieveBudgetNameById(id));
+    public ResponseEntity<String> getBudgetNameByGroupId(@PathVariable String id) {
+        return ResponseEntity.ok(this.retrieveBudgetProcessor.retrieveBudgetNameByGroupId(id));
     }
 
     @PostMapping()
