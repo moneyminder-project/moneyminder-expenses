@@ -19,7 +19,7 @@ public class BudgetEntity {
     @Column(name = "ID", columnDefinition = "CHAR(36)")
     private String id;
 
-    @Column(name = "NAME", nullable = false)
+    @Column(name = "NAME", nullable = false, unique = true)
     private String name;
 
     @Column(name = "COMMENT")

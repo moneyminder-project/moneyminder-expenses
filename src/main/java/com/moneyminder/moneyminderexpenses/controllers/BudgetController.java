@@ -58,6 +58,4 @@ public class BudgetController {
         this.deleteBudgetProcessor.deleteBudget(id);
         return ResponseEntity.ok().build();
     }
-
-
 }
