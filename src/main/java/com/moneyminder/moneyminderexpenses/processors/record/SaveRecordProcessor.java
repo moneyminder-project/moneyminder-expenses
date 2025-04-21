@@ -1,10 +1,14 @@
 package com.moneyminder.moneyminderexpenses.processors.record;
 
+import com.moneyminder.moneyminderexpenses.mappers.BudgetMapper;
 import com.moneyminder.moneyminderexpenses.mappers.RecordMapper;
+import com.moneyminder.moneyminderexpenses.models.Budget;
 import com.moneyminder.moneyminderexpenses.models.Record;
+import com.moneyminder.moneyminderexpenses.persistence.entities.BudgetEntity;
 import com.moneyminder.moneyminderexpenses.persistence.entities.RecordEntity;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.BudgetRepository;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.RecordRepository;
+import com.moneyminder.moneyminderexpenses.processors.budget.SaveBudgetProcessor;
 import com.moneyminder.moneyminderexpenses.utils.AuthUtils;
 import com.moneyminder.moneyminderexpenses.utils.MoneyUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,8 @@ public class SaveRecordProcessor {
     private final RecordRepository recordRepository;
     private final BudgetRepository budgetRepository;
     private final RecordMapper recordMapper;
+    private final SaveBudgetProcessor saveBudgetProcessor;
+    private final BudgetMapper budgetMapper;
 
     public Record saveRecord(final Record record) {
         Assert.isNull(record.getId(), "Record id must be null");
@@ -36,8 +42,11 @@ public class SaveRecordProcessor {
             recordEntity.setBudgets(this.budgetRepository.findAllByIdIn(record.getBudgets()));
         }
 
-        return this.recordMapper.toModel(this.recordRepository.save(recordEntity));
+        final Record savedRecord = this.recordMapper.toModel(this.recordRepository.save(recordEntity));
 
+        this.updateBudgets(recordEntity.getBudgets());
+
+        return savedRecord;
     }
 
     public List<Record> saveRecordList(final List<Record> records) {
@@ -68,7 +77,15 @@ public class SaveRecordProcessor {
             recordEntity.setBudgets(this.budgetRepository.findAllByIdIn(record.getBudgets()));
         }
 
-        return recordMapper.toModel(this.recordRepository.save(recordEntity));
+        recordEntity.getBudgets().forEach(budget -> {
+
+        });
+
+        final Record savedRecord = this.recordMapper.toModel(this.recordRepository.save(recordEntity));
+
+        this.updateBudgets(recordEntity.getBudgets());
+
+        return savedRecord;
     }
 
     public List<Record> updateRecordList(final List<Record> records) {
@@ -86,5 +103,11 @@ public class SaveRecordProcessor {
         Assert.notNull(record.getName(), "Record name must not be null");
         Assert.hasLength(record.getName(), "Record name must not be empty");
         Assert.notNull(record.getDate(), "Record date must not be null");
+    }
+
+    private void updateBudgets(final List<BudgetEntity> budgets) {
+        budgets.forEach(budget -> {
+            this.saveBudgetProcessor.updateBudget(budget.getId(), this.budgetMapper.toModel(budget));
+        });
     }
 }
