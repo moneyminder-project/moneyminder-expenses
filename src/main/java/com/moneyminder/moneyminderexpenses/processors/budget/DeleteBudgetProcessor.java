@@ -1,5 +1,6 @@
 package com.moneyminder.moneyminderexpenses.processors.budget;
 
+import com.moneyminder.moneyminderexpenses.feignClients.GroupFeignClient;
 import com.moneyminder.moneyminderexpenses.mappers.BudgetMapper;
 import com.moneyminder.moneyminderexpenses.persistence.entities.BudgetEntity;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.BudgetRepository;
@@ -18,6 +19,7 @@ public class DeleteBudgetProcessor {
     private final BudgetRepository budgetRepository;
     private final RecordRepository recordRepository;
     private final BudgetMapper budgetMapper;
+    private final GroupFeignClient groupFeignClient;
 
     @Transactional
     public void deleteBudget(String id) {
@@ -29,6 +31,8 @@ public class DeleteBudgetProcessor {
                     !budgetInd.getId().equals(budgetEntity.getId())).collect(Collectors.toList()));
             this.recordRepository.save(record);
         });
+
+        this.groupFeignClient.deleteGroup(budgetEntity.getGroupId());
 
         this.budgetRepository.deleteById(id);
     }
