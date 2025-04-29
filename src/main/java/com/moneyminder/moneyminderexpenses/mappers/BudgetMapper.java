@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface BudgetMapper {
 
-
     @Mapping(source = "records", target = "records", qualifiedByName = "mapRecordsToUUIDs")
     @Mapping(target = "favorite", expression = "java(isFavorite(entity))")
     Budget toModel(BudgetEntity entity);
