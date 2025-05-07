@@ -10,11 +10,10 @@ import com.moneyminder.moneyminderexpenses.persistence.repositories.RecordReposi
 import com.moneyminder.moneyminderexpenses.requestParams.RecordRequestParams;
 import com.moneyminder.moneyminderexpenses.utils.AuthUtils;
 import com.moneyminder.moneyminderexpenses.utils.RecordType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -27,7 +26,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RetrieveRecordProcessorTest {
+
+    private MockedStatic<AuthUtils> mockedStatic;
 
     @Mock
     private RecordRepository recordRepository;
@@ -41,9 +43,22 @@ class RetrieveRecordProcessorTest {
     @InjectMocks
     private RetrieveRecordProcessor retrieveRecordProcessor;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    void setup() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedStatic = mockStatic(AuthUtils.class);
+        mockedStatic.when(AuthUtils::getUsername).thenReturn("user");
+    }
+
+    @AfterEach
+    void afterEach() {
+        if (mockedStatic != null) {
+            mockedStatic.close();
+        }
     }
 
     @Test
@@ -73,8 +88,6 @@ class RetrieveRecordProcessorTest {
         entity.setOwner("user");
 
         when(recordRepository.findById(id)).thenReturn(Optional.of(entity));
-        mockStatic(AuthUtils.class);
-        when(AuthUtils.getUsername()).thenReturn("user");
         when(recordMapper.toModel(any())).thenReturn(new Record());
 
         Record result = retrieveRecordProcessor.retrieveRecordById(id);

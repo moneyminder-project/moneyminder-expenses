@@ -7,11 +7,10 @@ import com.moneyminder.moneyminderexpenses.persistence.entities.RecordEntity;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.DetailRepository;
 import com.moneyminder.moneyminderexpenses.requestParams.DetailRequestParams;
 import com.moneyminder.moneyminderexpenses.utils.AuthUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -23,7 +22,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RetrieveDetailProcessorTest {
+
+    private MockedStatic<AuthUtils> mockedStatic;
 
     @Mock
     private DetailRepository detailRepository;
@@ -34,9 +36,22 @@ class RetrieveDetailProcessorTest {
     @InjectMocks
     private RetrieveDetailProcessor retrieveDetailProcessor;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    void setup() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedStatic = mockStatic(AuthUtils.class);
+        mockedStatic.when(AuthUtils::getUsername).thenReturn("user");
+    }
+
+    @AfterEach
+    void afterEach() {
+        if (mockedStatic != null) {
+            mockedStatic.close();
+        }
     }
 
     @Test
@@ -67,8 +82,6 @@ class RetrieveDetailProcessorTest {
         entity.setRecord(recordEntity);
 
         when(detailRepository.findById(id)).thenReturn(Optional.of(entity));
-        mockStatic(AuthUtils.class);
-        when(AuthUtils.getUsername()).thenReturn("user");
 
         Detail detail = new Detail();
         when(detailMapper.toModel(any(DetailEntity.class))).thenReturn(detail);

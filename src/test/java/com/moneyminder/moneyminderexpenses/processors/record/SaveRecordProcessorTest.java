@@ -11,11 +11,10 @@ import com.moneyminder.moneyminderexpenses.persistence.repositories.RecordReposi
 import com.moneyminder.moneyminderexpenses.processors.budget.SaveBudgetProcessor;
 import com.moneyminder.moneyminderexpenses.utils.AuthUtils;
 import com.moneyminder.moneyminderexpenses.utils.RecordType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
@@ -28,7 +27,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SaveRecordProcessorTest {
+
+    private MockedStatic<AuthUtils> mockedStatic;
+
     @Mock
     private RecordRepository recordRepository;
 
@@ -47,9 +50,22 @@ class SaveRecordProcessorTest {
     @InjectMocks
     private SaveRecordProcessor saveRecordProcessor;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    void setup() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedStatic = mockStatic(AuthUtils.class);
+        mockedStatic.when(AuthUtils::getUsername).thenReturn("user");
+    }
+
+    @AfterEach
+    void afterEach() {
+        if (mockedStatic != null) {
+            mockedStatic.close();
+        }
     }
 
     @Test
@@ -126,8 +142,6 @@ class SaveRecordProcessorTest {
         toSaveEntity.setBudgets(List.of(budgetEntity));
 
         when(recordRepository.findById(id)).thenReturn(Optional.of(dbEntity));
-        mockStatic(AuthUtils.class);
-        when(AuthUtils.getUsername()).thenReturn("user");
         when(recordMapper.toEntity(record)).thenReturn(toSaveEntity);
         when(budgetRepository.findAllByIdIn(record.getBudgets())).thenReturn(List.of(budgetEntity));
         when(recordRepository.save(toSaveEntity)).thenReturn(toSaveEntity);

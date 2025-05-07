@@ -7,9 +7,7 @@ import com.moneyminder.moneyminderexpenses.persistence.entities.BudgetEntity;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.BudgetRepository;
 import com.moneyminder.moneyminderexpenses.requestParams.BudgetRequestParams;
 import com.moneyminder.moneyminderexpenses.utils.AuthUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -23,7 +21,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RetrieveBudgetProcessorTest {
+
+    private MockedStatic<AuthUtils> mockedStatic;
 
     @Mock
     private BudgetRepository budgetRepository;
@@ -37,9 +38,22 @@ class RetrieveBudgetProcessorTest {
     @InjectMocks
     private RetrieveBudgetProcessor retrieveBudgetProcessor;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    void setup() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedStatic = mockStatic(AuthUtils.class);
+        mockedStatic.when(AuthUtils::getUsername).thenReturn("testUser");
+    }
+
+    @AfterEach
+    void afterEach() {
+        if (mockedStatic != null) {
+            mockedStatic.close();
+        }
     }
 
     @Test
@@ -50,23 +64,20 @@ class RetrieveBudgetProcessorTest {
         List<BudgetEntity> budgetEntities = List.of(new BudgetEntity());
         List<Budget> budgets = List.of(new Budget());
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(AuthUtils::getUsername).thenReturn("testUser");
+        when(groupFeignClient.getGroupIdsByUsername("testUser")).thenReturn(groups);
+        when(budgetRepository.findAll(any(Specification.class))).thenReturn(budgetEntities);
+        when(budgetMapper.toModelList(budgetEntities)).thenReturn(budgets);
 
-            when(groupFeignClient.getGroupIdsByUsername("testUser")).thenReturn(groups);
-            when(budgetRepository.findAll(any(Specification.class))).thenReturn(budgetEntities);
-            when(budgetMapper.toModelList(budgetEntities)).thenReturn(budgets);
+        List<Budget> result = retrieveBudgetProcessor.retrieveBudgets(params);
 
-            List<Budget> result = retrieveBudgetProcessor.retrieveBudgets(params);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(groups, params.getGroupsIn());
 
-            assertNotNull(result);
-            assertEquals(1, result.size());
-            assertEquals(groups, params.getGroupsIn());
+        verify(groupFeignClient).getGroupIdsByUsername("testUser");
+        verify(budgetRepository).findAll(any(Specification.class));
+        verify(budgetMapper).toModelList(budgetEntities);
 
-            verify(groupFeignClient).getGroupIdsByUsername("testUser");
-            verify(budgetRepository).findAll(any(Specification.class));
-            verify(budgetMapper).toModelList(budgetEntities);
-        }
     }
 
 

@@ -49,13 +49,6 @@ class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("jwtDecoder bean created with correct jwk test")
-    void jwtDecoderBeanCreationTest() {
-        JwtDecoder decoder = securityConfig.jwtDecoder();
-        assertNotNull(decoder);
-    }
-
-    @Test
     @DisplayName("jwtAuthenticationConverter bean created test")
     void jwtAuthenticationConverterBeanCreationTest() {
         JwtAuthenticationConverter converter = securityConfig.jwtAuthenticationConverter();

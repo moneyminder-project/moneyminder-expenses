@@ -7,11 +7,10 @@ import com.moneyminder.moneyminderexpenses.persistence.entities.RecordEntity;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.DetailRepository;
 import com.moneyminder.moneyminderexpenses.persistence.repositories.RecordRepository;
 import com.moneyminder.moneyminderexpenses.utils.AuthUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
@@ -21,7 +20,10 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SaveDetailProcessorTest {
+
+    private MockedStatic<AuthUtils> mockedStatic;
 
     @Mock
     private DetailRepository detailRepository;
@@ -35,9 +37,22 @@ class SaveDetailProcessorTest {
     @InjectMocks
     private SaveDetailProcessor saveDetailProcessor;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    void setup() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedStatic = mockStatic(AuthUtils.class);
+        mockedStatic.when(AuthUtils::getUsername).thenReturn("user");
+    }
+
+    @AfterEach
+    void afterEach() {
+        if (mockedStatic != null) {
+            mockedStatic.close();
+        }
     }
 
     @Test
@@ -96,8 +111,6 @@ class SaveDetailProcessorTest {
 
         when(detailRepository.findById(id)).thenReturn(Optional.of(existingEntity));
         when(recordRepository.findById("recordId")).thenReturn(Optional.of(new RecordEntity()));
-        mockStatic(AuthUtils.class);
-        when(AuthUtils.getUsername()).thenReturn("user");
 
         DetailEntity entity = new DetailEntity();
         when(detailMapper.toEntity(detail)).thenReturn(entity);
