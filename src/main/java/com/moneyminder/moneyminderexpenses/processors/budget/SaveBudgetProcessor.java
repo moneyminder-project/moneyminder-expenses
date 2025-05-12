@@ -84,7 +84,10 @@ public class SaveBudgetProcessor {
 
         final BudgetEntity dbBudgetEntity = this.budgetRepository.findById(id).orElseThrow();
 
-        budget.setExpensesLimit(MoneyUtils.round(budget.getExpensesLimit()));
+        if (budget.getExpensesLimit() != null) {
+            budget.setExpensesLimit(MoneyUtils.round(budget.getExpensesLimit()));
+        }
+
         budget.setGroupId(dbBudgetEntity.getGroupId());
 
         final BudgetEntity budgetEntity = this.budgetMapper.toEntity(budget);
