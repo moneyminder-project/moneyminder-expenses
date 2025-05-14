@@ -29,13 +29,6 @@ jobs:
           ./mvnw test
           ./mvnw clean package
 
-      - name: Upload JAR as artifact
-        if: github.ref == 'refs/heads/development' || github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v2
-        with:
-          name: moneyminder-expenses-0.0.1-SNAPSHOT
-          path: target/*.jar
-
       - name: Docker login
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v2
