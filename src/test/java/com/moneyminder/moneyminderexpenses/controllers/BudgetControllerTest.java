@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(locations = "classpath:application-test.properties")
 @ActiveProfiles("test")
-@WebMvcTest(BudgetControllerTest.class)
+@WebMvcTest(BudgetController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class BudgetControllerTest {
 
