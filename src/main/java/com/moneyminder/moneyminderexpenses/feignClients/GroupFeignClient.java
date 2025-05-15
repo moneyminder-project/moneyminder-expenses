@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name= "groupService", url = "users:18082/group", configuration = FeignConfig.class)
+@FeignClient(name= "groupService", url = "${GROUP_SERVICE_URL}", configuration = FeignConfig.class)
 public interface GroupFeignClient {
 
     @GetMapping("/by-username/{username}")
